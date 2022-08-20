@@ -1,8 +1,8 @@
 import Database from "./database.js";
 import express from "express";
 
-const users = new Database("users.json");
-const accounts = new Database("accounts.json");
+const users = await new Database("users.json").init();
+const lockers = await new Database("lockers.json").init([]);
 
 const app = express();
 const port = 3000;
@@ -16,6 +16,8 @@ app.use(express.json());
  * @returns {Promise<Object>} Account
  */
 async function login(username, password) {
+	console.log(username, password);
+	console.log(users.getAll());
 	const user = await users.get(username);
 	if (!user) {
 		throw new Error("User not found");
@@ -30,16 +32,21 @@ async function login(username, password) {
  * Authorization middleware.
  */
 app.use(async (req, res, next) => {
-	const { username, password } = req.headers.authorization;
-	if (!username || !password) {
-		return res.status(400).send("Missing username or password");
-	}
-	const user = await login(username, password);
-	const path = req.path.substring(1).split("/");
-	if (user.allowed.includes(path[0])) {
-		next();
-	} else {
-		return res.status(403).send("Forbidden");
+	try {
+		const auth = JSON.parse(req.headers.authorization);
+		if (!auth?.password || !auth?.username) {
+			return res.status(401).send("Unauthorized");
+		}
+		const {username, password} = auth;
+		const user = await login(username, password);
+		const path = req.path.substring(1).split("/");
+		if (user?.allowed === "*" || user?.allowed?.includes(path[0])) {
+			next();
+		} else {
+			return res.status(403).send("Forbidden");
+		}
+	} catch (e) {
+		return res.status(401).send(e.message);
 	}
 });
 
@@ -60,18 +67,18 @@ function filterLocker(locker, user) {
  * Get all lockers.
  */
 app.get("/lockers", async (req, res) => {
-	const lockers = await accounts.getAll();
-	for (let locker of lockers) {
+	const lockersData = await lockers.getAll();
+	for (let locker of lockersData) {
 		locker = filterLocker(locker, req.user);
 	}
-	res.send(lockers);
+	res.send(lockersData);
 });
 
 /**
  * Get locker by id.
  */
 app.get("/lockers/:id", async (req, res) => {
-	let locker = await accounts.get(req.params.id);
+	let locker = await lockers.get(req.params.id);
 	if (!locker) {
 		return res.status(404).send("Locker not found");
 	}
@@ -84,14 +91,9 @@ app.get("/lockers/:id", async (req, res) => {
  * @returns {Promise<number>} New locker id
  */
 async function getNewLockerId() {
-	const lockers = await accounts.getAll();
-	let id = 0;
-	for (const locker of lockers) {
-		if (locker.id >= id) {
-			id = locker.id + 1;
-		}
-	}
-	return id;
+	const lockersData = await lockers.getAll();
+	const ids = lockersData.map(locker => locker.id);
+	return Math.max(...ids) + 1;
 }
 
 /**
@@ -101,7 +103,7 @@ app.post("/lockers", async (req, res) => {
 	const locker = req.body;
 	const id = await getNewLockerId();
 	locker.id = id;
-	await accounts.set(id, locker);
+	await lockers.set(id, locker);
 	res.send(locker);
 });
 
@@ -110,7 +112,7 @@ app.post("/lockers", async (req, res) => {
  */
 app.put("/lockers/:id", async (req, res) => {
 	const locker = req.body;
-	await accounts.set(req.params.id, locker);
+	await lockers.set(req.params.id, locker);
 	res.send(locker);
 });
 
@@ -118,7 +120,7 @@ app.put("/lockers/:id", async (req, res) => {
  * Delete locker.
  */
 app.delete("/lockers/:id", async (req, res) => {
-	await accounts.delete(req.params.id);
+	await lockers.delete(req.params.id);
 	res.send();
 });
 

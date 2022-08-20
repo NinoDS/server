@@ -7,15 +7,15 @@ class Database {
 
 	/**
 	 * Initialize the database.
+	 * @param {Object} [obj={}] Initial object.
 	 * @returns {Promise<Database>}
 	 */
-	async init() {
+	async init(obj={}) {
 		try {
 			await fs.access(this.path);
 		} catch (e) {
-			await fs.writeFile(this.path, JSON.stringify({}));
+			await fs.writeFile(this.path, JSON.stringify(obj));
 		}
-		return this;
 	}
 
 	/**
