@@ -34,7 +34,7 @@ class Database {
 
 	/**
 	 * Sets a key
-	 * @param {String} key Key
+	 * @param {any} key Key
 	 * @param {any} value Value
 	 */
 	async set(key, value) {

@@ -79,4 +79,47 @@ app.get("/lockers/:id", async (req, res) => {
 	res.send(locker);
 });
 
+/**
+ * Get new locker id.
+ * @returns {Promise<number>} New locker id
+ */
+async function getNewLockerId() {
+	const lockers = await accounts.getAll();
+	let id = 0;
+	for (const locker of lockers) {
+		if (locker.id >= id) {
+			id = locker.id + 1;
+		}
+	}
+	return id;
+}
+
+/**
+ * Create locker.
+ */
+app.post("/lockers", async (req, res) => {
+	const locker = req.body;
+	const id = await getNewLockerId();
+	locker.id = id;
+	await accounts.set(id, locker);
+	res.send(locker);
+});
+
+/**
+ * Update locker.
+ */
+app.put("/lockers/:id", async (req, res) => {
+	const locker = req.body;
+	await accounts.set(req.params.id, locker);
+	res.send(locker);
+});
+
+/**
+ * Delete locker.
+ */
+app.delete("/lockers/:id", async (req, res) => {
+	await accounts.delete(req.params.id);
+	res.send();
+});
+
 app.listen(port, () => console.log(`Server started on port ${port}`));
