@@ -27,10 +27,10 @@ async function login(username, password) {
 }
 
 /**
- * Authentication middleware.
+ * Authorization middleware.
  */
 app.use(async (req, res, next) => {
-	const { username, password } = req.body;
+	const { username, password } = req.headers.authorization;
 	if (!username || !password) {
 		return res.status(400).send("Missing username or password");
 	}
