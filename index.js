@@ -135,7 +135,7 @@ app.get("/lockers/:id", async (req, res) => {
 async function getNewLockerId() {
 	const lockersData = await lockers.getAll();
 	const ids = lockersData.map(locker => locker.id);
-	return Math.max(...ids) + 1;
+	return Math.max(...ids) ? Math.max(...ids) + 1 : 1;
 }
 
 /**
