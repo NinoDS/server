@@ -1,13 +1,34 @@
 import Database from "./database.js";
 import express from "express";
 
-const users = await new Database("users.json").init();
-const lockers = await new Database("lockers.json").init([]);
+const users = new Database("users.json");
+const lockers = new Database("lockers.json", []);
+const requests = new Database("requests.json", []);
+const auditLog = new Database("auditlog.json", []);
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
+
+/**
+ * Logs an action.
+ * @param {String} action Action
+ * @param {String} username Username
+ * @param {String} [description] Description
+ * @returns {Promise<void>}
+ */
+async function logAction(action, username, description) {
+	const log = {
+		action,
+		username,
+		description,
+		timestamp: new Date().toISOString()
+	};
+	let logData = await auditLog.getAll();
+	logData.push(log);
+	await auditLog.setAll(logData);
+}
 
 /**
  * Login user and return it.
@@ -40,7 +61,8 @@ app.use(async (req, res, next) => {
 		const {username, password} = auth;
 		const user = await login(username, password);
 		const path = req.path.substring(1).split("/");
-		if (user?.allowed === "*" || user?.allowed?.includes(path[0])) {
+		if (user?.permissions.paths === "*" || user?.permissions.paths.includes(path[0])) {
+			req.user = user;
 			next();
 		} else {
 			return res.status(403).send("Forbidden");
@@ -51,13 +73,21 @@ app.use(async (req, res, next) => {
 });
 
 /**
+ * Logger middleware.
+ */
+app.use(async (req, res, next) => {
+	await logAction(req.method, req.user.username, req.path);
+	next();
+});
+
+/**
  * Filter out sepa data if not allowed.
  * @param {Object} locker Locker
  * @param {Object} user User
  * @returns {Object} Filtered locker
  */
 function filterLocker(locker, user) {
-	if (!user.sepa) {
+	if (!user.permissions.sepa) {
 		delete locker.sepa;
 	}
 	return locker;
@@ -121,6 +151,118 @@ app.put("/lockers/:id", async (req, res) => {
  */
 app.delete("/lockers/:id", async (req, res) => {
 	await lockers.delete(req.params.id);
+	res.send();
+});
+
+/**
+ * Get all usernames.
+ */
+app.get("/users", async (req, res) => {
+	const usersData = await users.list();
+	res.send(usersData);
+});
+
+/**
+ * Get user by username.
+ */
+app.get("/users/:username", async (req, res) => {
+	const user = await users.get(req.params.username);
+	if (!user) {
+		return res.status(404).send("User not found");
+	}
+	delete user.password;
+	res.send(user);
+});
+
+/**
+ * Create user.
+ */
+app.post("/users", async (req, res) => {
+	// Only admins can create users.
+	if (!req.user.permissions.admin) {
+		return res.status(403).send("Forbidden");
+	}
+	const user = req.body;
+	await users.set(user.username, user);
+	res.send(user);
+});
+
+/**
+ * Update user.
+ */
+app.put("/users/:username", async (req, res) => {
+	// Admin can update any user. User can update his username and password.
+	if (req.user.permissions.admin) {
+		await users.set(req.params.username, req.body);
+		return res.send(await users.get(req.params.username));
+	}
+	if (req.user.username === req.params.username) {
+		if (req.body.password) {
+			await users.set(req.params.username, {...await users.get(req.params.username), password: req.body.password});
+		}
+		if (req.body.username) {
+			await users.set(req.body.username, await users.get(req.params.username));
+			await users.delete(req.params.username);
+		}
+		return res.send(await users.get(req.params.username));
+	}
+	return res.status(403).send("Forbidden");
+});
+
+/**
+ * Delete user.
+ */
+app.delete("/users/:username", async (req, res) => {
+	// Only admins can delete users.
+	if (!req.user.permissions.admin) {
+		return res.status(403).send("Forbidden");
+	}
+	await users.delete(req.params.username);
+	res.send();
+});
+
+/**
+ * Get all locker requests.
+ */
+app.get("/requests", async (req, res) => {
+	const requestsData = await requests.getAll();
+	res.send(requestsData);
+});
+
+/**
+ * Get locker request by id.
+ */
+app.get("/requests/:id", async (req, res) => {
+	const request = await requests.get(req.params.id);
+	if (!request) {
+		return res.status(404).send("Request not found");
+	}
+	res.send(request);
+});
+
+/**
+ * Create locker request.
+ */
+app.post("/requests", async (req, res) => {
+	const request = req.body;
+	await requests.set(request.id, request);
+	res.send(request);
+});
+
+/**
+ * Update locker request.
+ */
+app.put("/requests/:id", async (req, res) => {
+	const request = req.body;
+	await requests.set(req.params.id, request);
+	res.send(request);
+});
+
+/**
+ * Delete locker request.
+ */
+app.delete("/requests/:id", async (req, res) => {
+	await requests.delete(req.params.id);
 	res.send();
 });
 

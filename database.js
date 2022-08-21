@@ -1,21 +1,23 @@
-import { promises as fs } from 'fs';
+import * as fsSync from 'fs';
+
+const fs = fsSync.promises;
 
 class Database {
-	constructor(path) {
+	constructor(path, init={}) {
 		this.path = path;
+		this.init(init);
 	}
 
 	/**
 	 * Initialize the database.
 	 * @param {Object} [obj={}] Initial object.
-	 * @returns {Promise<Database>}
+	 * @returns {Database}
 	 */
-	async init(obj={}) {
-		try {
-			await fs.access(this.path);
-		} catch (e) {
-			await fs.writeFile(this.path, JSON.stringify(obj));
+	init(obj={}) {
+		if (!fsSync.existsSync(this.path)) {
+			fsSync.writeFileSync(this.path, JSON.stringify(obj));
 		}
+		return this;
 	}
 
 	/**
@@ -80,8 +82,7 @@ class Database {
 	 */
 	async getAll() {
 		const data = await fs.readFile(this.path, 'utf8');
-		const json = JSON.parse(data);
-		return json;
+		return JSON.parse(data);
 	}
 
 	/**
