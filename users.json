@@ -1,0 +1,11 @@
+{
+    "test": {
+        "username": "test",
+        "password": "test",
+        "permissions": {
+            "sepa": true,
+            "paths": "*",
+            "admin": true
+        }
+    }
+}

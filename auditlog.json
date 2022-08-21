@@ -1,0 +1,80 @@
+[
+    {
+        "action": "GET",
+        "username": "test",
+        "description": "/lockers",
+        "timestamp": "2022-08-21T19:00:08.560Z"
+    },
+    {
+        "action": "GET",
+        "username": "test",
+        "description": "/users",
+        "timestamp": "2022-08-21T19:00:43.459Z"
+    },
+    {
+        "action": "GET",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:02:47.091Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:03:10.330Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:06:31.174Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:08:11.343Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:08:22.481Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:10:42.006Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:10:48.960Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:15:35.888Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:16:42.855Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:17:46.946Z"
+    },
+    {
+        "action": "PUT",
+        "username": "test",
+        "description": "/users/test/change-password",
+        "timestamp": "2022-08-21T19:18:40.399Z"
+    }
+]
