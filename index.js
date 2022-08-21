@@ -1,5 +1,6 @@
 import Database from "./database.js";
 import express from "express";
+import cors from "cors";
 
 const users = new Database("users.json");
 const lockers = new Database("lockers.json", []);
@@ -10,6 +11,7 @@ const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cors());
 
 /**
  * Logs an action.
@@ -32,7 +34,7 @@ async function logAction(action, username, description) {
 }
 
 function formatLog(log) {
-	return `[${log.timestamp}] User ${log.username}: ${log.action} ${log.description ? `(${log.description})` : ""}`;
+	return `[${log.timestamp}] ${log.username}: ${log.action} ${log.description ? `(${log.description})` : ""}`;
 }
 
 /**
