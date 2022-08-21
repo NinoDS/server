@@ -15,7 +15,7 @@ class Database {
 	 */
 	init(obj={}) {
 		if (!fsSync.existsSync(this.path)) {
-			fsSync.writeFileSync(this.path, JSON.stringify(obj));
+			fsSync.writeFileSync(this.path, JSON.stringify(obj, null, 4));
 		}
 		return this;
 	}
@@ -43,7 +43,7 @@ class Database {
 		const data = await fs.readFile(this.path, 'utf8');
 		const json = JSON.parse(data);
 		json[key] = value;
-		await fs.writeFile(this.path, JSON.stringify(json));
+		await fs.writeFile(this.path, JSON.stringify(json, null, 4));
 	}
 
 	/**
@@ -54,7 +54,7 @@ class Database {
 		const data = await fs.readFile(this.path, 'utf8');
 		const json = JSON.parse(data);
 		delete json[key];
-		await fs.writeFile(this.path, JSON.stringify(json));
+		await fs.writeFile(this.path, JSON.stringify(json, null, 4));
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Database {
 	 * @param {Object} obj The object.
 	 */
 	async setAll(obj) {
-		await fs.writeFile(this.path, JSON.stringify(obj));
+		await fs.writeFile(this.path, JSON.stringify(obj, null, 4));
 	}
 
 	/**

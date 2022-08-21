@@ -28,6 +28,11 @@ async function logAction(action, username, description) {
 	let logData = await auditLog.getAll();
 	logData.push(log);
 	await auditLog.setAll(logData);
+	console.log(formatLog(log));
+}
+
+function formatLog(log) {
+	return `[${log.timestamp}] User ${log.username}: ${log.action} ${log.description ? `(${log.description})` : ""}`;
 }
 
 /**
@@ -37,8 +42,6 @@ async function logAction(action, username, description) {
  * @returns {Promise<Object>} Account
  */
 async function login(username, password) {
-	console.log(username, password);
-	console.log(users.getAll());
 	const user = await users.get(username);
 	if (!user) {
 		throw new Error("User not found");
@@ -59,7 +62,12 @@ app.use(async (req, res, next) => {
 			return res.status(401).send("Unauthorized");
 		}
 		const {username, password} = auth;
-		const user = await login(username, password);
+		let user;
+		try {
+			user = await login(username, password);
+		} catch (e) {
+			return res.status(401).send("Unauthorized");
+		}
 		const path = req.path.substring(1).split("/");
 		if (user?.permissions.paths === "*" || user?.permissions.paths.includes(path[0])) {
 			req.user = user;
@@ -218,6 +226,22 @@ app.delete("/users/:username", async (req, res) => {
 		return res.status(403).send("Forbidden");
 	}
 	await users.delete(req.params.username);
+	res.send();
+});
+
+/**
+ * Change user password.
+ */
+app.put("/users/:username/change-password", async (req, res) => {
+	// Only admins or user himself can change password.
+	if (!req.user.permissions.admin && req.user.username !== req.params.username) {
+		return res.status(403).send("Forbidden");
+	}
+	if (req.body.password) {
+		await users.set(req.params.username, {...await users.get(req.params.username), password: req.body.password});
+	} else {
+		return res.status(400).send("Password is required");
+	}
 	res.send();
 });
 

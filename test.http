@@ -1,0 +1,14 @@
+
+PUT http://localhost:3000/users/test/change-password
+Accept: application/json
+Authorization: {"username":"test", "password": "test"}
+Content-Type: application/json
+
+{
+    "password": "test"
+}
+
+
+
+
+###
