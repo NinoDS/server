@@ -134,8 +134,13 @@ app.get("/lockers/:id", async (req, res) => {
  */
 async function getNewLockerId() {
 	const lockersData = await lockers.getAll();
-	const ids = lockersData.map(locker => locker.id);
-	return Math.max(...ids) ? Math.max(...ids) + 1 : 1;
+	let id = 1;
+	for (let locker of lockersData) {
+		if (locker.id >= id) {
+			id = locker.id + 1;
+		}
+	}
+	return id;
 }
 
 /**
