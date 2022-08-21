@@ -17,24 +17,26 @@ app.use(cors());
  * Logs an action.
  * @param {String} action Action
  * @param {String} username Username
+ * @param {String} path Path
  * @param {String} [description] Description
  * @returns {Promise<void>}
  */
-async function logAction(action, username, description) {
+async function logAction(action, username, path, description) {
 	const log = {
+		timestamp: new Date().toISOString(),
 		action,
 		username,
-		description,
-		timestamp: new Date().toISOString()
+		path,
+		description
 	};
-	let logData = await auditLog.getAll();
-	logData.push(log);
-	await auditLog.setAll(logData);
+	let auditLogData = await auditLog.getAll();
+	auditLogData.push(log);
+	await auditLog.setAll(auditLogData);
 	console.log(formatLog(log));
 }
 
 function formatLog(log) {
-	return `[${log.timestamp}] ${log.username}: ${log.action} ${log.description ? `(${log.description})` : ""}`;
+	return `[${log.timestamp}] ${log.username}: ${log.action} ${log.path} ${log.description ? `(${log.description})` : ""}`;
 }
 
 /**
@@ -86,7 +88,7 @@ app.use(async (req, res, next) => {
  * Logger middleware.
  */
 app.use(async (req, res, next) => {
-	await logAction(req.method, req.user.username, req.path);
+	await logAction(req.method, req.user.username, req.path, req.body?.description);
 	next();
 });
 
