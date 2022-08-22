@@ -136,8 +136,8 @@ async function getNewLockerId() {
 	const lockersData = await lockers.getAll();
 	let id = 0;
 	for (let locker of lockersData) {
-		if (locker.id >= id) {
-			id = locker.id + 1;
+		if (locker?.id ?? 0 >= id) {
+			id = locker?.id ?? 0 + 1;
 		}
 	}
 	return id;
