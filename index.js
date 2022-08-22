@@ -299,4 +299,8 @@ app.delete("/requests/:id", async (req, res) => {
 	res.send();
 });
 
+app.get("/key", (req, res) => {
+        res.send(Math.random() <= 0.5 ? "GURKE" : "SECRET");
+});
+
 app.listen(port, () => console.log(`Server started on port ${port}`));
