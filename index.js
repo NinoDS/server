@@ -141,8 +141,8 @@ async function getNewLockerId() {
 	const lockersData = await lockers.getAll();
 	let id = 0;
 	for (let locker of lockersData) {
-		if (locker.id >= id) {
-			id = locker.id + 1;
+		if (locker?.id ?? 0 >= id) {
+			id = locker?.id ?? 0 + 1;
 		}
 	}
 	return id;
@@ -323,6 +323,10 @@ app.put("/requests/:id", async (req, res) => {
 app.delete("/requests/:id", async (req, res) => {
 	await requests.delete(req.params.id);
 	res.send();
+});
+
+app.get("/key", (req, res) => {
+        res.send(Math.random() <= 0.5 ? "GURKE" : "SECRET");
 });
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
