@@ -1,4 +1,5 @@
 import Database from "./database.js";
+import { validateLocker } from "./validation.js";
 import express from "express";
 import cors from "cors";
 
@@ -84,6 +85,10 @@ app.use(async (req, res, next) => {
 	}
 });
 
+app.get("/validate", async (req, res) => {
+	return res.send(req.user);
+});
+
 /**
  * Logger middleware.
  */
@@ -147,9 +152,16 @@ async function getNewLockerId() {
  * Create locker.
  */
 app.post("/lockers", async (req, res) => {
+	if (!req.user.permissions.admin) {
+		return res.status(403).send("Forbidden");
+	}
+
 	const locker = req.body;
 	const id = await getNewLockerId();
 	locker.id = id;
+	if (!validateLocker(locker)) {
+		return res.status(400).send("Invalid locker");
+	}
 	await lockers.set(id, locker);
 	res.send(locker);
 });
@@ -159,6 +171,20 @@ app.post("/lockers", async (req, res) => {
  */
 app.put("/lockers/:id", async (req, res) => {
 	const locker = req.body;
+
+	if (!await lockers.get(req.params.id)) {
+		return res.status(404).send("Locker not found");
+	}
+
+	if (!req.user.permissions.admin) {
+		const currentLocker = await lockers.get(req.params.id);
+		locker.sepa = currentLocker.sepa;
+	}
+
+	if (!validateLocker(locker)) {
+		return res.status(400).send("Invalid locker");
+	}
+
 	await lockers.set(req.params.id, locker);
 	res.send(locker);
 });
