@@ -272,6 +272,7 @@ app.put("/users/:username/change-password", async (req, res) => {
 	if (!req.user.permissions.admin && req.user.username !== req.params.username) {
 		return res.status(403).send("Forbidden");
 	}
+	console.log(req.body);
 	if (req.body.password) {
 		await users.set(req.params.username, {...await users.get(req.params.username), password: req.body.password});
 	} else {
