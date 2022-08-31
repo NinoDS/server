@@ -214,5 +214,11 @@
         "action": "GET",
         "username": "test",
         "path": "/lockers"
+    },
+    {
+        "timestamp": "2022-08-25T19:13:37.628Z",
+        "action": "PUT",
+        "username": "test",
+        "path": "/users/test/change-password"
     }
 ]

@@ -112,6 +112,84 @@ function evaluateSQL(source) {
     return tables;
 }
 
+function renameFields(table) {
+    const renames = {
+        'lock_benutzer': {
+            'nr': 'id',
+            'vorname': 'firstName',
+            'nachname': 'lastName',
+            'klasse': 'class',
+            'tel': 'phone',
+            'mobil': 'mobile',
+            'email': 'email',
+        },
+        'lock_mieter': {
+            'nr': 'id',
+            'vorname': 'firstName',
+            'nachname': 'lastName',
+            'tel': 'phone',
+            'mobil': 'mobile',
+            'email': 'email',
+        },
+        'lock_schliessfach': {
+            'nr': 'id',
+            'benutzer': 'user',
+            'mieter': 'renter',
+            'auslaufdatum': 'expirationDate',
+            'defekt': 'broken',
+            'anmerkung': 'note',
+        }
+    };
+
+    for (const tableName in renames) {
+        if (table[tableName]) {
+            for (const row of table[tableName]) {
+                for (const oldName in renames[tableName]) {
+                    const value = row[oldName];
+                    delete row[oldName];
+                    row[renames[tableName][oldName]] = value;
+                }
+            }
+        }
+    }
+
+    return table;
+}
+
+// Insert table values
+function insertValues(tables) {
+    let insertInto = 'lock_schliessfach';
+    let insertings = [
+        {
+            table: 'lock_benutzer',
+            key: 'user',
+            id: 'id',
+        },
+        {
+            table: 'lock_mieter',
+            key: 'renter',
+            id: 'id',
+        }
+    ];
+    for (let insertedRow of tables[insertInto]) {
+        for (let inserting of insertings) {
+            let insertingRow = tables[inserting.table].find(x => x[inserting.id] === insertedRow[inserting.key]);
+            if (insertingRow) {
+                insertedRow[inserting.key] = insertingRow;
+            } else {
+                console.log('Could not find', inserting.key, insertedRow[inserting.key], 'in', inserting.table);
+                insertedRow[inserting.key] = null;
+            }
+        }
+    }
+
+    for (const inserting of insertings) {
+        delete tables[inserting.table];
+    }
+
+    return tables;
+}
+
 // Get file from args
 let file = process.argv[2];
 if (!file) {
@@ -120,7 +198,9 @@ if (!file) {
 }
 let source = fs.readFileSync(file, 'utf8');
 let tables = evaluateSQL(source);
-let outputFile = file.substring(0, file.length - 3) + 'json';
+tables = renameFields(tables);
+tables = insertValues(tables);
+let outputFile = file.substring(0, file.length - 4) + '2.json';
 // Check --format flag
 let formatted = false;
 for (const arg of process.argv) {
