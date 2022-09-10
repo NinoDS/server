@@ -6,107 +6,168 @@
 function validateLocker(locker) {
     /* Locker schema:
     {
-        id: number,
-        renter: Renter,
-        user: User,
-        expiration: Date as string,
-        defect: boolean,
-        note: string,
+        id: number!,
+        user: User!,
+        renter: Renter!,
+        expirationDate: Date as string!,
+        broken: boolean,
+        note: string
+        sepa: Sepa?
     }
-    */
-    if (!locker.id || typeof locker.id !== "number") {
+     */
+
+    if (!locker.id || typeof locker.id !== 'number') {
         return false;
     }
-    if (!locker.renter || !validateRenter(locker.renter)) {
-        return false;
-    }
+
     if (!locker.user || !validateUser(locker.user)) {
         return false;
     }
-    if (!locker.expiration || typeof locker.expiration !== "string") {
-        return false;
-    } else {
-        const date = new Date(locker.expiration);
-        if (isNaN(date.getTime())) {
-            return false;
-        }
-    }
-    if (typeof locker.defect !== "boolean") {
+
+    if (!locker.renter || !validateRenter(locker.renter)) {
         return false;
     }
-    if (typeof locker.note !== "string") {
+
+    if (!locker.expirationDate || typeof locker.expirationDate !== 'string' || !validateDate(locker.expirationDate)) {
         return false;
     }
+
+    if (typeof locker.broken !== 'boolean') {
+        return false;
+    }
+
+    if (typeof locker.note !== 'string') {
+        return false;
+    }
+
+    if (locker.sepa && !validateSepa(locker.sepa)) {
+        return false;
+    }
+
     return true;
 }
 
-/**
- * Verify user object.
- * @param {Object} user User object
- * @returns {boolean} True if user is valid
- */
+function validateDate(date) {
+    return isFinite(Date.parse(date));
+}
+
 function validateUser(user) {
     /* User schema:
     {
+        id: number!,
         firstName: string,
         lastName: string,
         class: string,
-        telephone: string,
+        phone: string,
         mobile: string,
         email: string,
      */
-    if (!user.firstName || typeof user.firstName !== "string") {
+
+    if (!user.id || typeof user.id !== 'number') {
         return false;
     }
-    if (!user.lastName || typeof user.lastName !== "string") {
+
+    if (typeof user.firstName !== 'string') {
         return false;
     }
-    if (!user.class || typeof user.class !== "string") {
+
+    if (typeof user.lastName !== 'string') {
         return false;
     }
-    if (!user.telephone || typeof user.telephone !== "string") {
+
+    if (typeof user.class !== 'string') {
         return false;
     }
-    if (!user.mobile || typeof user.mobile !== "string") {
+
+    if (typeof user.phone !== 'string') {
         return false;
     }
-    if (!user.email || typeof user.email !== "string") {
+
+    if (typeof user.mobile !== 'string') {
         return false;
     }
+
+    if (typeof user.email !== 'string') {
+        return false;
+    }
+
     return true;
 }
 
-/**
- * Verify renter object.
- * @param {Object} renter Renter object
- * @returns {boolean} True if renter is valid
- */
 function validateRenter(renter) {
     /* Renter schema:
     {
+        id: number!,
         firstName: string,
         lastName: string,
-        telephone: string,
+        phone: string,
         mobile: string,
         email: string,
-    }
-    */
-    if (!renter.firstName || typeof renter.firstName !== "string") {
+     */
+
+    if (!renter.id || typeof renter.id !== 'number') {
         return false;
     }
-    if (!renter.lastName || typeof renter.lastName !== "string") {
+
+    if (typeof renter.firstName !== 'string') {
         return false;
     }
-    if (!renter.telephone || typeof renter.telephone !== "string") {
+
+    if (typeof renter.lastName !== 'string') {
         return false;
     }
-    if (!renter.mobile || typeof renter.mobile !== "string") {
+
+    if (typeof renter.phone !== 'string') {
         return false;
     }
-    if (!renter.email || typeof renter.email !== "string") {
+
+    if (typeof renter.mobile !== 'string') {
         return false;
     }
+
+    if (typeof renter.email !== 'string') {
+        return false;
+    }
+
     return true;
 }
 
-export { validateLocker, validateUser, validateRenter };
+function validateSepa(sepa) {
+    /* Sepa schema:
+    {
+        child: string!,
+        name: string!,
+        bank: string!,
+        iban: string!,
+        bic: string!,
+        appliesFrom: Date as string!,
+     */
+
+    if (typeof sepa.child !== 'string') {
+        return false;
+    }
+
+    if (typeof sepa.name !== 'string') {
+        return false;
+    }
+
+    if (typeof sepa.bank !== 'string') {
+        return false;
+    }
+
+    if (typeof sepa.iban !== 'string') {
+        return false;
+    }
+
+    if (typeof sepa.bic !== 'string') {
+        return false;
+    }
+
+    if (!sepa.appliesFrom || typeof sepa.appliesFrom !== 'string' || !validateDate(sepa.appliesFrom)) {
+        return false;
+    }
+
+    return true;
+}
+
+export { validateLocker, validateDate, validateRenter, validateUser, validateSepa };

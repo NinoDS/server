@@ -190,6 +190,21 @@ function insertValues(tables) {
     return tables;
 }
 
+function applyFilters(tables) {
+    let filters = [
+        {
+            table: 'lock_schliessfach',
+            filter: (table) => { table.broken = table.broken !== 'falsch'; },
+        },
+    ];
+
+    for (const filter of filters) {
+        tables[filter.table].forEach(filter.filter);
+    }
+
+    return tables;
+}
+
 // Get file from args
 let file = process.argv[2];
 if (!file) {
@@ -200,6 +215,7 @@ let source = fs.readFileSync(file, 'utf8');
 let tables = evaluateSQL(source);
 tables = renameFields(tables);
 tables = insertValues(tables);
+tables = applyFilters(tables);
 let outputFile = file.substring(0, file.length - 4) + '2.json';
 // Check --format flag
 let formatted = false;

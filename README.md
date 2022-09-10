@@ -37,3 +37,6 @@ Creates a new request with the given values
 Updates a specific request with the given id to the given values
 #### **DELETE** `/requests/id`
 Deletes a specific request with the given id
+
+
+⚠️ Non-exhaustive
