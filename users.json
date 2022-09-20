@@ -1,7 +1,7 @@
 {
     "test": {
         "username": "test",
-        "password": "lolol",
+        "password": "test",
         "permissions": {
             "sepa": true,
             "paths": "*",

@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import chalk from 'chalk';
 
 function parseValueTuples(values) {
     let result = [];
@@ -132,7 +133,7 @@ function renameFields(table) {
             'email': 'email',
         },
         'lock_schliessfach': {
-            'nr': 'id',
+            'nr': 'number',
             'benutzer': 'user',
             'mieter': 'renter',
             'auslaufdatum': 'expirationDate',
@@ -177,7 +178,7 @@ function insertValues(tables) {
             if (insertingRow) {
                 insertedRow[inserting.key] = insertingRow;
             } else {
-                console.log('Could not find', inserting.key, insertedRow[inserting.key], 'in', inserting.table);
+                warning('Could not find', inserting.key, insertedRow[inserting.key], 'in', inserting.table + ' at number', insertedRow.number);
                 insertedRow[inserting.key] = null;
             }
         }
@@ -190,33 +191,16 @@ function insertValues(tables) {
     return tables;
 }
 
-function applyFilters(tables) {
-    let filters = [
-        {
-            table: 'lock_schliessfach',
-            filter: (table) => { table.broken = table.broken !== 'falsch'; },
-        },
-    ];
-
-    for (const filter of filters) {
-        tables[filter.table].forEach(filter.filter);
-    }
-
-    return tables;
-}
-
 // Get file from args
 let file = process.argv[2];
 if (!file) {
-    console.log('Please provide a file to parse');
+    error('Please provide a file to parse');
     process.exit(1);
 }
 let source = fs.readFileSync(file, 'utf8');
 let tables = evaluateSQL(source);
 tables = renameFields(tables);
 tables = insertValues(tables);
-tables = applyFilters(tables);
-let outputFile = file.substring(0, file.length - 4) + '2.json';
 // Check --format flag
 let formatted = false;
 for (const arg of process.argv) {
@@ -224,6 +208,25 @@ for (const arg of process.argv) {
         formatted = true;
     }
 }
-const output = JSON.stringify(tables, null, formatted ? 4 : null);
-fs.writeFileSync(outputFile, output);
-console.log(`Wrote ${outputFile} ${formatted ? '(formatted)' : ''}`);
+for (const tableName in tables) {
+    if (formatted) {
+        fs.writeFileSync(`./${tableName}.json`, JSON.stringify(tables[tableName], null, 2));
+        success(`Wrote ${tableName}.json (formatted)`);
+    } else {
+        fs.writeFileSync(`./${tableName}.json`, JSON.stringify(tables[tableName]));
+        success(`Wrote ${tableName}.json`);
+    }
+}
+
+function warning(...args) {
+    console.log(chalk.yellow(chalk.bold('warning:')), ...args);
+}
+
+
+function error(...args) {
+    console.error(chalk.red(chalk.bold('error:')), ...args);
+}
+
+function success(...args) {
+    console.log(chalk.blue(chalk.bold('success:')), ...args);
+}

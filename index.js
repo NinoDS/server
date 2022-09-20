@@ -4,7 +4,7 @@ import express from "express";
 import cors from "cors";
 
 const users = new Database("users.json");
-const lockers = new Database("lockers.json", []);
+const lockers = new Database("lock_schliessfach.json", []);
 const requests = new Database("requests.json", []);
 const auditLog = new Database("auditlog.json", []);
 
@@ -62,6 +62,7 @@ async function login(username, password) {
  */
 app.use(async (req, res, next) => {
 	try {
+		console.log(req.body);
 		const auth = JSON.parse(req.headers.authorization);
 		if (!auth?.password || !auth?.username) {
 			return res.status(401).send("Unauthorized");
@@ -159,9 +160,6 @@ app.post("/lockers", async (req, res) => {
 	const locker = req.body;
 	const id = await getNewLockerId();
 	locker.id = id;
-	if (!validateLocker(locker)) {
-		return res.status(400).send("Invalid locker");
-	}
 	await lockers.set(id, locker);
 	res.send(locker);
 });
@@ -179,10 +177,6 @@ app.put("/lockers/:id", async (req, res) => {
 	if (!req.user.permissions.admin) {
 		const currentLocker = await lockers.get(req.params.id);
 		locker.sepa = currentLocker.sepa;
-	}
-
-	if (!validateLocker(locker)) {
-		return res.status(400).send("Invalid locker");
 	}
 
 	await lockers.set(req.params.id, locker);
